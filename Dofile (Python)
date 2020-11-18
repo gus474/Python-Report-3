@@ -1,0 +1,84 @@
+Logfile:
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from statsmodels.formula.api import ols
+import matplotlib.pyplot as plt
+
+file = r'C://Users//19085//Downloads//ps3.csv'
+pd.read_csv(file)
+df = pd.read_csv(file)
+import datetime
+
+df['date'] = pd.to_datetime(df['date'])
+df.describe()
+df['day'] = df['date'].dt.day_name()
+df = df.dropna()
+#hourdummy = pd.get_dummies(df['hour'])
+#hourdummy.head()
+#df = pd.concat([df,hourdummy], axis = 1)
+df['day']
+import seaborn as sns
+weekend = df[~(df.day.isin(["Monday", 'Tuesday', 'Wednesday', 'Thursday', 'Friday']))]
+weekendE = weekend[~(weekend.direction.isin(['W']))]
+weekendE
+weekendW = weekend[~(weekend.direction.isin(['E']))]
+weekendW
+nonw = df[~(df.day.isin(['Saturday', 'Sunday']))]
+nonwE = nonw[~(nonw.direction.isin(['W']))]
+nonwE
+nonwW = nonw[~(nonw.direction.isin(['E']))]
+nonwW
+nonwW.describe()
+nonwW.groupby('hour').agg({'speed': ['mean']})
+nonwE.groupby('hour').agg({'speed': ['mean', 'min', 'max']})
+weekendE.groupby('hour').agg({'speed': ['mean', 'min', 'max']})
+weekendW.groupby('hour').agg({'speed': ['mean', 'min', 'max']})
+modelW = ols('speed ~ C(hour)', nonwW).fit()
+print(modelW.summary())
+
+den=  nonwW['volume']/nonwW['speed']
+nonwW= pd.concat([nonwW,den], axis = 1)
+nonwW
+#Our values and density match - confirmed
+
+nonwW.groupby('hour').agg({'density': ['mean', 'min', 'max']})
+model9W = ols('speed ~ C(hour) + density', nonwW).fit()
+print(model9W.summary())
+
+nonwW
+
+ax = sns.regplot(x = nonwW['density'], y = nonwW['volume'], data = nonwW)
+ax.set(xlabel='Traffic Density (cars per mile)', ylabel='Traffic Volume (cars per hour)')
+plt.show()
+
+hourlydatanW = nonwW.groupby('hour').agg({'volume': ['mean']})
+
+
+#x = nonwW['volume']/nonwW['speed']
+also = nonwW.groupby('hour').agg({'density': ['mean']})
+hourlydatanW = pd.concat([hourlydatanW,also], axis = 1)
+
+hourlydatanW
+this = nonwW.groupby('hour').agg({'speed': ['mean']})
+hourlydatanW = pd.concat([hourlydatanW,this], axis = 1)
+
+hourlydatanW
+hourlydatanE = nonwE.groupby('hour').agg({'volume': ['mean']})
+second = nonwE.groupby('hour').agg({'density': ['mean']})
+third =nonwE.groupby('hour').agg({'speed': ['mean']})
+hourlydatanE = pd.concat([hourlydatanE, second, third], axis = 1)
+hourlydatanE
+
+hourlydatawE = weekendE.groupby('hour').agg({'volume': ['mean']})
+secondi = weekendE.groupby('hour').agg({'density': ['mean']})
+thirdi =weekendE.groupby('hour').agg({'speed': ['mean']})
+hourlydatawE = pd.concat([hourlydatawE, secondi, thirdi], axis = 1)
+hourlydatawE
+
+hourlydatawW = weekendW.groupby('hour').agg({'volume': ['mean']})
+secondi = weekendW.groupby('hour').agg({'density': ['mean']})
+thirdi =weekendW.groupby('hour').agg({'speed': ['mean']})
+hourlydatawW = pd.concat([hourlydatawW, secondi, thirdi], axis = 1)
+hourlydatawW
+
